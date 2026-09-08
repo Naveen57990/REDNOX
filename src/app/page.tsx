@@ -142,7 +142,7 @@ export default function HomePage() {
               Cybersecurity Copilot
             </p>
             <h1 className="rise rise-d2 mx-auto mt-4 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-fg sm:text-6xl">
-              Your <span className="shimmer-text">AI-Powered</span> Kopilot for Cybersecurity Mastery
+              Your <span className="shimmer-text">AI-Powered</span> Copilot for Cybersecurity Mastery
             </h1>
             <p className="rise rise-d2 font-hand mt-2 text-lg text-accent/70">
               everything in one place
