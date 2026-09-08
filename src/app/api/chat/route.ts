@@ -111,6 +111,14 @@ function jsonError(message: string, status: number): Response {
   });
 }
 
+function eMessage(e: unknown): string {
+  if (e instanceof Error) {
+    const cause = e.cause as { code?: string; message?: string } | undefined;
+    return cause?.code || cause?.message || e.message;
+  }
+  return String(e);
+}
+
 const SSE_HEADERS = {
   "Content-Type": "text/event-stream",
   "Cache-Control": "no-cache, no-transform",
@@ -132,22 +140,30 @@ async function openAiCompatibleStream(
     ? baseUrl
     : `${baseUrl.replace(/\/$/, "")}/chat/completions`;
 
-  const upstream = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      ...extraHeaders,
-    },
-    cache: "no-store",
-    body: JSON.stringify({
-      model,
-      stream: true,
-      max_tokens: 1800,
-      temperature: 0.7,
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-    }),
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        ...extraHeaders,
+      },
+      cache: "no-store",
+      body: JSON.stringify({
+        model,
+        stream: true,
+        max_tokens: 1800,
+        temperature: 0.7,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+      }),
+    });
+  } catch (e) {
+    return jsonError(
+      `Could not reach the AI provider at ${url}. Check the Server URL / API key and try again. (${eMessage(e)})`,
+      502,
+    );
+  }
 
   if (!upstream.ok || !upstream.body) {
     const text = await upstream.text().catch(() => "");
@@ -173,17 +189,28 @@ async function ollamaStream(
   baseUrl?: string,
 ): Promise<Response> {
   const host = baseUrl || "http://localhost:11434";
-  const upstream = await fetch(`${host.replace(/\/$/, "")}/api/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    body: JSON.stringify({
-      model: modelId,
-      stream: true,
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-      options: { temperature: 0.7 },
-    }),
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${host.replace(/\/$/, "")}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      body: JSON.stringify({
+        model: modelId,
+        stream: true,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        options: { temperature: 0.7 },
+      }),
+    });
+  } catch (e) {
+    const local = /127\.0\.0\.1|localhost/.test(host);
+    return jsonError(
+      local
+        ? `No local Ollama server at ${host}. Ollama only works when the app itself runs on your own machine (with "ollama serve" running and the model pulled). On this hosted site, use OpenRouter / OpenAI / custom instead — add a key or custom base URL via ⚡ Connect your AI. (${eMessage(e)})`
+        : `Could not reach Ollama at ${host}. Check the Server URL and try again. (${eMessage(e)})`,
+      502,
+    );
+  }
 
   if (!upstream.ok || !upstream.body) {
     const text = await upstream.text().catch(() => "");

@@ -224,6 +224,14 @@ export function LlmSettingsModal({
                 <span className="mono">http://localhost:1234/v1</span> (LM
                 Studio) or <span className="mono">https://api.groq.com/openai</span>.
               </p>
+              {draft.provider === "ollama" && (
+                <p className="mt-1.5 text-[11px] text-warn">
+                  Note: on this hosted site, Ollama only works if it is running
+                  on a machine reachable from the internet (e.g. your own server
+                  or ngrok). On most visitors&apos; machines it will fail to
+                  connect — OpenRouter needs no setup and works everywhere.
+                </p>
+              )}
             </div>
           )}
 
