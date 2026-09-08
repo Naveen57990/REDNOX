@@ -1,0 +1,608 @@
+export interface KaliCommand {
+  name: string;
+  category: string;
+  description: string;
+  syntax: string[];
+  flags: { flag: string; desc: string }[];
+  example: string;
+  tip: string;
+}
+
+export const COMMAND_CATEGORIES = [
+  "Navigation",
+  "File Management",
+  "Networking Basics",
+  "System Information",
+  "Permissions",
+  "Processes",
+  "Package Management",
+] as const;
+
+export type CommandCategory = (typeof COMMAND_CATEGORIES)[number];
+
+export const COMMANDS: KaliCommand[] = [
+  // Navigation
+  {
+    name: "pwd",
+    category: "Navigation",
+    description: "Print the current working directory.",
+    syntax: ["pwd"],
+    flags: [
+      { flag: "-P", desc: "show physical path (no symlinks)" },
+      { flag: "-L", desc: "show logical path (default)" },
+    ],
+    example: "pwd\n/home/student/labs",
+    tip: "Run this first in any session so you always know where you are.",
+  },
+  {
+    name: "ls",
+    category: "Navigation",
+    description: "List files and directories.",
+    syntax: ["ls [options] [path]"],
+    flags: [
+      { flag: "-l", desc: "long format with permissions, owner, size, date" },
+      { flag: "-a", desc: "include hidden files (starting with .)" },
+      { flag: "-la", desc: "long format including hidden files" },
+      { flag: "-R", desc: "recursive listing" },
+      { flag: "-h", desc: "human-readable sizes (with -l)" },
+    ],
+    example: "ls -la /home/student/labs",
+    tip: "ls -la is your default look-around command — get used to reading it.",
+  },
+  {
+    name: "cd",
+    category: "Navigation",
+    description: "Change the current directory.",
+    syntax: ["cd [path]", "cd ..", "cd ~", "cd -"],
+    flags: [
+      { flag: "..", desc: "go up one level" },
+      { flag: "~", desc: "go to your home directory" },
+      { flag: "-", desc: "return to the previous directory" },
+    ],
+    example: "cd /etc && ls",
+    tip: "Use ~ to mean home and .. to go up — they shorten almost every path.",
+  },
+  {
+    name: "find",
+    category: "Navigation",
+    description: "Search for files and directories by name, size, type or date.",
+    syntax: ["find [start-path] -name 'pattern'"],
+    flags: [
+      { flag: "-name", desc: "match a filename pattern" },
+      { flag: "-iname", desc: "case-insensitive name match" },
+      { flag: "-type f / d", desc: "only files / only directories" },
+      { flag: "-size +10M", desc: "files larger than 10 megabytes" },
+      { flag: "-mtime -7", desc: "modified in the last 7 days" },
+    ],
+    example: "find /home -name '*.conf' 2>/dev/null",
+    tip: "Redirect errors with 2>/dev/null to hide permission-denied noise.",
+  },
+  {
+    name: "grep",
+    category: "Navigation",
+    description: "Search text inside files and command output.",
+    syntax: ["grep [options] 'pattern' files", "command | grep 'pattern'"],
+    flags: [
+      { flag: "-i", desc: "case-insensitive" },
+      { flag: "-r", desc: "recursive search in directories" },
+      { flag: "-v", desc: "invert match (exclude lines)" },
+      { flag: "-n", desc: "show line numbers" },
+      { flag: "-l", desc: "only print matching filenames" },
+    ],
+    example: "grep -rni 'password' /home/student/notes",
+    tip: "grep -ni is the single most useful pattern for triage.",
+  },
+
+  // File Management
+  {
+    name: "cat",
+    category: "File Management",
+    description: "Print file contents to the terminal.",
+    syntax: ["cat [file...]", "cat file1 file2 > combined"],
+    flags: [
+      { flag: "-n", desc: "number output lines" },
+      { flag: "-b", desc: "number non-empty lines" },
+    ],
+    example: "cat /etc/os-release",
+    tip: "For long files, prefer less (scrollable) instead of cat.",
+  },
+  {
+    name: "less",
+    category: "File Management",
+    description: "View files page-by-page with scrolling.",
+    syntax: ["less [file]"],
+    flags: [
+      { flag: "q", desc: "quit" },
+      { flag: "/pattern", desc: "search inside the file" },
+      { flag: "g / G", desc: "jump to start / end" },
+    ],
+    example: "less /var/log/auth.log",
+    tip: "less is safer than cat for anything longer than one screen.",
+  },
+  {
+    name: "touch",
+    category: "File Management",
+    description: "Create an empty file or update timestamps.",
+    syntax: ["touch [file]"],
+    flags: [
+      { flag: "-a", desc: "change access time only" },
+      { flag: "-t <time>", desc: "set a specific timestamp (CCYYMMDDhhmm.ss)" },
+    ],
+    example: "touch /home/student/notes/quick.txt",
+    tip: "Useful for staging notes before filling them in.",
+  },
+  {
+    name: "mkdir",
+    category: "File Management",
+    description: "Create directories.",
+    syntax: ["mkdir [options] [dir]"],
+    flags: [
+      { flag: "-p", desc: "create parent directories as needed" },
+      { flag: "-v", desc: "verbose output" },
+    ],
+    example: "mkdir -p ~/labs/networking ~/labs/web-security",
+    tip: "-p prevents errors when parents don't exist yet.",
+  },
+  {
+    name: "cp",
+    category: "File Management",
+    description: "Copy files and directories.",
+    syntax: ["cp [options] source dest"],
+    flags: [
+      { flag: "-r", desc: "recursive (directories)" },
+      { flag: "-v", desc: "verbose" },
+      { flag: "-i", desc: "prompt before overwrite" },
+    ],
+    example: "cp -r ~/labs ~/backup-labs",
+    tip: "Make a backup before destructive testing — accidents happen.",
+  },
+  {
+    name: "mv",
+    category: "File Management",
+    description: "Move or rename files and directories.",
+    syntax: ["mv [options] source dest"],
+    flags: [
+      { flag: "-i", desc: "prompt before overwrite" },
+      { flag: "-v", desc: "verbose" },
+    ],
+    example: "mv scan-01.txt /home/student/notes/",
+    tip: "mv is also rename — nothing is copied, just relocated.",
+  },
+  {
+    name: "rm",
+    category: "File Management",
+    description: "Remove files and directories.",
+    syntax: ["rm [options] [file...]"],
+    flags: [
+      { flag: "-r", desc: "recursive (directories)" },
+      { flag: "-f", desc: "force, ignore missing files" },
+      { flag: "-i", desc: "prompt before each removal" },
+    ],
+    example: "rm -ri ~/scratch",
+    tip: "rm is permanent — there is no recycle bin. Triple-check paths.",
+  },
+  {
+    name: "head",
+    category: "File Management",
+    description: "Show the first lines of a file.",
+    syntax: ["head [options] [file]"],
+    flags: [
+      { flag: "-n <N>", desc: "show N lines (default 10)" },
+    ],
+    example: "head -n 20 /var/log/access.log",
+    tip: "Pair with tail when triaging log files.",
+  },
+  {
+    name: "tail",
+    category: "File Management",
+    description: "Show the last lines of a file, or follow it live.",
+    syntax: ["tail [options] [file]"],
+    flags: [
+      { flag: "-n <N>", desc: "show last N lines" },
+      { flag: "-f", desc: "follow the file as it grows" },
+    ],
+    example: "tail -f /var/log/auth.log",
+    tip: "tail -f is perfect for watching login or build logs live.",
+  },
+
+  // Networking Basics
+  {
+    name: "ip",
+    category: "Networking Basics",
+    description: "Inspect and configure network interfaces and routes.",
+    syntax: ["ip addr", "ip route", "ip link"],
+    flags: [
+      { flag: "addr", desc: "show/modify addresses" },
+      { flag: "route", desc: "show routing table" },
+      { flag: "link", desc: "show interface state (up/down, MAC)" },
+    ],
+    example: "ip addr show eth0",
+    tip: "ip replaces the old ifconfig. On Kali, eth0 is your primary interface.",
+  },
+  {
+    name: "ping",
+    category: "Networking Basics",
+    description: "Test reachability and round-trip latency to a host.",
+    syntax: ["ping [options] host"],
+    flags: [
+      { flag: "-c <N>", desc: "stop after N packets" },
+      { flag: "-i <sec>", desc: "interval between packets" },
+      { flag: "-v", desc: "verbose" },
+    ],
+    example: "ping -c 4 127.0.0.1",
+    tip: "Always use -c on a real network to avoid infinite loops.",
+  },
+  {
+    name: "traceroute",
+    category: "Networking Basics",
+    description: "Show the network path to a remote host.",
+    syntax: ["traceroute [options] host"],
+    flags: [
+      { flag: "-m <hops>", desc: "max hops" },
+      { flag: "-T", desc: "use TCP probes" },
+    ],
+    example: "traceroute example.com",
+    tip: "* * * lines usually mean routers drop the probe — not a dead link.",
+  },
+  {
+    name: "curl",
+    category: "Networking Basics",
+    description: "Transfer data with URLs (HTTP, HTTPS, FTP…).",
+    syntax: ["curl [options] URL"],
+    flags: [
+      { flag: "-v", desc: "verbose request/response headers" },
+      { flag: "-o <file>", desc: "write output to a file" },
+      { flag: "-X POST", desc: "send a POST request" },
+      { flag: "-d 'data'", desc: "POST body data" },
+      { flag: "-H 'Header'", desc: "custom header" },
+      { flag: "-L", desc: "follow redirects" },
+    ],
+    example: "curl -v http://127.0.0.1",
+    tip: "curl -v is your manual HTTP client for lab web testing.",
+  },
+  {
+    name: "wget",
+    category: "Networking Basics",
+    description: "Download files and mirror websites from the CLI.",
+    syntax: ["wget [options] URL"],
+    flags: [
+      { flag: "-O <file>", desc: "save to a specific name" },
+      { flag: "-q", desc: "quiet output" },
+    ],
+    example: "wget -O rockyou_sample.txt https://example.com/list.txt",
+    tip: "Respect robots.txt and scope when downloading from other sites.",
+  },
+  {
+    name: "nc",
+    category: "Networking Basics",
+    description: "Netcat — read/write data across the network (the 'Swiss army knife').",
+    syntax: ["nc [options] host port", "nc -l -p <port>"],
+    flags: [
+      { flag: "-l", desc: "listen mode" },
+      { flag: "-v", desc: "verbose" },
+      { flag: "-n", desc: "skip DNS resolution" },
+      { flag: "-p <port>", desc: "local port to listen on" },
+    ],
+    example: "nc -lvnp 4444   # lab listener on 127.0.0.1 in your sandbox",
+    tip: "In labs, nc is used for reverse shells — only inside machines you own.",
+  },
+  {
+    name: "ss",
+    category: "Networking Basics",
+    description: "Show socket statistics — what's listening on which ports.",
+    syntax: ["ss [options]"],
+    flags: [
+      { flag: "-t", desc: "TCP sockets" },
+      { flag: "-u", desc: "UDP sockets" },
+      { flag: "-l", desc: "listening sockets only" },
+      { flag: "-n", desc: "numeric addresses" },
+      { flag: "-p", desc: "show owning process" },
+    ],
+    example: "ss -tulpn",
+    tip: "Every listening port is attack surface — audit it on your own machines.",
+  },
+  {
+    name: "dns",
+    category: "Networking Basics",
+    description: "Query DNS records with tools like dig (or nslookup/host).",
+    syntax: ["dig [options] domain", "dig domain A", "dig domain MX"],
+    flags: [
+      { flag: "A / AAAA / MX / TXT", desc: "record type to query" },
+      { flag: "+short", desc: "compact answer" },
+    ],
+    example: "dig example.com MX +short",
+    tip: "dig +short gives clean answers — start there.",
+  },
+
+  // System Information
+  {
+    name: "uname",
+    category: "System Information",
+    description: "Print system and kernel information.",
+    syntax: ["uname [options]"],
+    flags: [
+      { flag: "-a", desc: "all info (kernel, hostname, architecture)" },
+      { flag: "-r", desc: "kernel release" },
+      { flag: "-m", desc: "machine architecture" },
+    ],
+    example: "uname -a",
+    tip: "Kernel version matters for vulnerability research — always note it.",
+  },
+  {
+    name: "whoami",
+    category: "System Information",
+    description: "Print the current effective username.",
+    syntax: ["whoami"],
+    flags: [],
+    example: "whoami\nkali",
+    tip: "Check whoami before running anything that needs (or must not have) root.",
+  },
+  {
+    name: "id",
+    category: "System Information",
+    description: "Show user and group IDs.",
+    syntax: ["id [user]"],
+    flags: [],
+    example: "id\nuid=1000(kali) gid=1000(kali) groups=1000(kali),27(sudo)",
+    tip: "Being in the sudo group is the classic quick win to check.",
+  },
+  {
+    name: "hostname",
+    category: "System Information",
+    description: "Show or set the system hostname.",
+    syntax: ["hostname", "hostname -I"],
+    flags: [
+      { flag: "-I", desc: "all configured IP addresses" },
+    ],
+    example: "hostname -I\n192.168.1.100",
+    tip: "Use hostname -I to find your own IP on the network.",
+  },
+  {
+    name: "df",
+    category: "System Information",
+    description: "Report filesystem disk space usage.",
+    syntax: ["df [options]"],
+    flags: [
+      { flag: "-h", desc: "human-readable sizes" },
+    ],
+    example: "df -h",
+    tip: "Full disks are the most common lab chaos source — check df early.",
+  },
+  {
+    name: "free",
+    category: "System Information",
+    description: "Show memory usage.",
+    syntax: ["free [options]"],
+    flags: [
+      { flag: "-h", desc: "human-readable sizes" },
+    ],
+    example: "free -h",
+    tip: "-h everywhere: readable sizes beat raw bytes every time.",
+  },
+  {
+    name: "du",
+    category: "System Information",
+    description: "Estimate file and directory space usage.",
+    syntax: ["du [options] [path]"],
+    flags: [
+      { flag: "-sh", desc: "summary, human-readable" },
+      { flag: "-h --max-depth=1", desc: "one level of subdirectories" },
+    ],
+    example: "du -sh /home/*",
+    tip: "du -sh is the fast way to find what's eating disk space.",
+  },
+  {
+    name: "date",
+    category: "System Information",
+    description: "Print the current date and time.",
+    syntax: ["date [options]"],
+    flags: [
+      { flag: "+%s", desc: "epoch (Unix) timestamp" },
+    ],
+    example: "date +%s",
+    tip: "Epoch timestamps are used in many logging systems — know +%s.",
+  },
+  {
+    name: "env",
+    category: "System Information",
+    description: "Show current environment variables.",
+    syntax: ["env"],
+    flags: [],
+    example: "env | grep -iE 'path|home'",
+    tip: "Env variables can leak secrets or reveal unusual configs — inspect them.",
+  },
+
+  // Permissions
+  {
+    name: "chmod",
+    category: "Permissions",
+    description: "Change file permissions (r/w/x).",
+    syntax: ["chmod [mode] file", "chmod 644 file", "chmod u+x file"],
+    flags: [
+      { flag: "u/g/o", desc: "user / group / others" },
+      { flag: "+ / -", desc: "add / remove permission" },
+      { flag: "r w x", desc: "read / write / execute" },
+      { flag: "4/2/1", desc: "numeric: r=4, w=2, x=1" },
+    ],
+    example: "chmod 600 ~/.ssh/id_ed25519",
+    tip: "Private keys must be 600 — the SSH client will refuse insecure modes.",
+  },
+  {
+    name: "chown",
+    category: "Permissions",
+    description: "Change file owner and group.",
+    syntax: ["chown user:group file"],
+    flags: [
+      { flag: "-R", desc: "recursive" },
+    ],
+    example: "sudo chown kali:kali /var/www",
+    tip: "Needs root. Keep servers running as non-root users where possible.",
+  },
+  {
+    name: "chgrp",
+    category: "Permissions",
+    description: "Change the group of a file or directory.",
+    syntax: ["chgrp group file"],
+    flags: [
+      { flag: "-R", desc: "recursive" },
+    ],
+    example: "chgrp www-data /var/www/config.php",
+    tip: "Groups enable shared access without opening files to everyone.",
+  },
+  {
+    name: "umask",
+    category: "Permissions",
+    description: "Show or set the default permission mask for new files.",
+    syntax: ["umask", "umask 022"],
+    flags: [],
+    example: "umask 077   # new files: owner-only (secure default)",
+    tip: "A strict umask (077) means new files don't leak to other users.",
+  },
+  {
+    name: "chattr",
+    category: "Permissions",
+    description: "Set file attributes that even root can't easily remove.",
+    syntax: ["chattr +i file", "lsattr file"],
+    flags: [
+      { flag: "+i", desc: "immutable — cannot be modified/deleted" },
+      { flag: "+a", desc: "append-only" },
+    ],
+    example: "sudo chattr +i /etc/hosts",
+    tip: "Common in persistence tricks — know how defenders spot it (lsattr).",
+  },
+
+  // Processes
+  {
+    name: "ps",
+    category: "Processes",
+    description: "Snapshot of running processes.",
+    syntax: ["ps aux", "ps -ef"],
+    flags: [
+      { flag: "aux", desc: "all user processes with detail" },
+      { flag: "-ef", desc: "all processes, full format" },
+      { flag: "| grep <name>", desc: "filter by process name" },
+    ],
+    example: "ps aux | grep nginx",
+    tip: "ps aux | grep and ps aux --sort=-%mem are your daily drivers.",
+  },
+  {
+    name: "top",
+    category: "Processes",
+    description: "Live-updating process monitor.",
+    syntax: ["top"],
+    flags: [
+      { flag: "Shift+P", desc: "sort by CPU" },
+      { flag: "Shift+M", desc: "sort by memory" },
+      { flag: "k", desc: "kill a process" },
+    ],
+    example: "top",
+    tip: "htop is nicer but top ships everywhere — know both.",
+  },
+  {
+    name: "kill",
+    category: "Processes",
+    description: "Send signals to processes (terminate, interrupt…).",
+    syntax: ["kill [signal] PID"],
+    flags: [
+      { flag: "-9", desc: "SIGKILL — force kill" },
+      { flag: "-15", desc: "SIGTERM — graceful shutdown (default)" },
+    ],
+    example: "kill -9 1234",
+    tip: "Always try -15 first and let the process clean up.",
+  },
+  {
+    name: "pkill",
+    category: "Processes",
+    description: "Send signals to processes by name.",
+    syntax: ["pkill [options] name"],
+    flags: [
+      { flag: "-9", desc: "force kill" },
+      { flag: "-f", desc: "match full command line" },
+    ],
+    example: "pkill -f 'nc -lvnp'",
+    tip: "pkill -f matches the whole command line — precise but risky; check first.",
+  },
+  {
+    name: "jobs",
+    category: "Processes",
+    description: "List background jobs in the current shell.",
+    syntax: ["jobs", "bg", "fg"],
+    flags: [
+      { flag: "-l", desc: "include process IDs" },
+    ],
+    example: "sleep 300 &\njobs\nfg 1",
+    tip: "& backgrounds a command; fg brings it back to the foreground.",
+  },
+  {
+    name: "systemctl",
+    category: "Processes",
+    description: "Control systemd services and the boot process.",
+    syntax: ["systemctl status <service>", "systemctl restart <service>"],
+    flags: [
+      { flag: "status", desc: "show service state and recent logs" },
+      { flag: "start/stop/restart", desc: "control the service" },
+      { flag: "enable/disable", desc: "start at boot / don't" },
+      { flag: "list-units", desc: "all loaded units" },
+    ],
+    example: "systemctl status sshd",
+    tip: "Most services on Debian/Kali run under systemd — status first, act second.",
+  },
+
+  // Package Management
+  {
+    name: "apt",
+    category: "Package Management",
+    description: "Install, update and remove packages (Debian/Kali).",
+    syntax: ["apt update", "apt install <pkg>", "apt search <term>"],
+    flags: [
+      { flag: "update", desc: "refresh package lists" },
+      { flag: "install <pkg>", desc: "install a package" },
+      { flag: "search <term>", desc: "search the repositories" },
+      { flag: "remove <pkg>", desc: "uninstall (keep config)" },
+      { flag: "-y", desc: "assume yes to prompts" },
+    ],
+    example: "sudo apt update && sudo apt install -y netcat-traditional",
+    tip: "Always update before install on a fresh or stale lab machine.",
+  },
+  {
+    name: "dpkg",
+    category: "Package Management",
+    description: "Lower-level Debian package tool (install .deb files).",
+    syntax: ["dpkg -i file.deb", "dpkg -l | grep <pkg>"],
+    flags: [
+      { flag: "-i", desc: "install a .deb file" },
+      { flag: "-l", desc: "list installed packages" },
+      { flag: "-L <pkg>", desc: "list files owned by a package" },
+      { flag: "-c", desc: "show contents of a .deb" },
+    ],
+    example: "dpkg -c tool.deb 2>/dev/null | head",
+    tip: "Inspect a .deb's contents before installing — good habit from day one.",
+  },
+  {
+    name: "pip",
+    category: "Package Management",
+    description: "Python package installer (often used for security tooling).",
+    syntax: ["pip install <pkg>", "pip list", "pip show <pkg>"],
+    flags: [
+      { flag: "install --user", desc: "install for current user only" },
+      { flag: "-r requirements.txt", desc: "install from a requirements file" },
+    ],
+    example: "pip install --user requests",
+    tip: "On Kali use apt first; only pip-install what apt can't provide.",
+  },
+  {
+    name: "git",
+    category: "Package Management",
+    description: "Clone, update and manage repositories from anywhere.",
+    syntax: ["git clone <url>", "git pull", "git status"],
+    flags: [
+      { flag: "clone", desc: "copy a remote repository" },
+      { flag: "pull", desc: "update from remote" },
+      { flag: "status", desc: "working tree state" },
+    ],
+    example: "git clone https://github.com/example/lab-tool.git && cd lab-tool",
+    tip: "Audit the code you clone — never run unknown scripts as root blindly.",
+  },
+];
+
+export const TOTAL_COMMANDS = COMMANDS.length;

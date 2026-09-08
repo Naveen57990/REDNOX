@@ -36,6 +36,14 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local database
+/data
+*.db
+*.db-journal
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# don't commit real secrets, but DO keep the example
+!.env.example
