@@ -4,6 +4,8 @@
 
 A free, browser-based AI cybersecurity learning platform. Explore **637 Kali Linux tools**, learn Linux & networking fundamentals, practice commands in a real terminal sandbox, audit passwords with a wordlist generator, and follow a 10-phase roadmap — all guided by an AI assistant that runs on *your* hardware or *your* API key.
 
+> **Live demo:** [rednox-blush.vercel.app](https://rednox-blush.vercel.app)
+
 > Built for education and authorized security testing only. Never attack a system you do not own or lack permission to test.
 
 ![Next.js](https://img.shields.io/badge/Next.js%2016-000000?logo=nextdotjs&logoColor=white&style=flat-square)
