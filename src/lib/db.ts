@@ -1,19 +1,18 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 
-const dbPath =
+const primaryDbPath =
   process.env.DB_PATH || path.join(process.cwd(), "data", "app.db");
 
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-
-export const db = new Database(dbPath, { timeout: 5000 });
-
-db.pragma("journal_mode = WAL");
-
-db.exec(`
+function initDatabase(file: string) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const d = new Database(file, { timeout: 5000 });
+  d.pragma("journal_mode = WAL");
+  d.exec(`
 CREATE TABLE IF NOT EXISTS users (
   id         TEXT PRIMARY KEY,
   name       TEXT NOT NULL DEFAULT '',
@@ -30,12 +29,22 @@ CREATE TABLE IF NOT EXISTS conversations (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `);
+  // Seed a demo account on first run so the demo login button works instantly.
+  const demoHash = bcrypt.hashSync("demo12345", 10);
+  d.prepare(
+    "INSERT OR IGNORE INTO users (id, name, email, password) VALUES (?, ?, ?, ?)",
+  ).run(randomUUID(), "Demo User", "demo@gokali.pro", demoHash);
+  return d;
+}
 
-// Seed a demo account on first run so the demo login button works instantly.
-const demoHash = bcrypt.hashSync("demo12345", 10);
-db.prepare(
-  "INSERT OR IGNORE INTO users (id, name, email, password) VALUES (?, ?, ?, ?)",
-).run(randomUUID(), "Demo User", "demo@gokali.pro", demoHash);
+// Serverless (Vercel) runs have a read-only working dir, so fall back to the
+// OS temp dir where a fresh (ephemeral) database can still be created.
+let db: Database.Database;
+try {
+  db = initDatabase(primaryDbPath);
+} catch {
+  db = initDatabase(path.join(os.tmpdir(), "rednox-app.db"));
+}
 
 export interface UserRow {
   id: string;

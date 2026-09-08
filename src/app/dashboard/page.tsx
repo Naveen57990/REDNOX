@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { DashboardProgress } from "@/components/dashboard/DashboardProgress";
 
@@ -19,6 +20,7 @@ const shortcuts = [
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
