@@ -16,6 +16,7 @@ import {
   ArrowRight,
   X,
   Blocks,
+  LibraryBig,
 } from "lucide-react";
 import { ThemePicker } from "./ThemePicker";
 
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/tools", label: "Tools", Icon: Wrench },
   { href: "/assistant", label: "AI Assistant", Icon: Bot },
   { href: "/learn", label: "Kali Learn", Icon: BookOpen },
+  { href: "/guides", label: "Master Guides", Icon: LibraryBig },
   { href: "/wordlist", label: "Word Gen", Icon: Layers },
   { href: "/roadmap", label: "Road Map", Icon: MapIcon },
   { href: "/utilities", label: "Utilities", Icon: Blocks },

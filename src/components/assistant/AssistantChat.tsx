@@ -41,7 +41,7 @@ export function AssistantChat() {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [settings, setSettings] = useState<LlmSettings | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setSettings(loadSettings()));
@@ -49,7 +49,12 @@ export function AssistantChat() {
   }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = scrollRef.current;
+    if (!el || messages.length === 0) return;
+    const raf = requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+    return () => cancelAnimationFrame(raf);
   }, [messages, busy]);
 
   async function send(text?: string) {
@@ -196,7 +201,10 @@ export function AssistantChat() {
         </button>
       )}
 
-      <div className="mt-4 flex-1 space-y-4 overflow-y-auto rounded-xl border border-line bg-panel/40 p-4">
+      <div
+        ref={scrollRef}
+        className="mt-4 flex-1 space-y-4 overflow-y-auto rounded-xl border border-line bg-panel/40 p-4"
+      >
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
             <div>
@@ -233,7 +241,6 @@ export function AssistantChat() {
             onCopy={() => copyMessage(i, m.content)}
           />
         ))}
-        <div ref={bottomRef} />
       </div>
 
       {error && (

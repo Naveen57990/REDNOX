@@ -5,6 +5,7 @@ const groups: { title: string; links: { href: string; label: string }[] }[] = [
     title: "Learn",
     links: [
       { href: "/tools", label: "Kali Tool Database" },
+      { href: "/guides", label: "Master Guides" },
       { href: "/roadmap", label: "Zero to Hero Roadmap" },
       { href: "/learn", label: "Kali Learn" },
       { href: "/terminal", label: "Terminal Sandbox" },
