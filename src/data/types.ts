@@ -32,6 +32,52 @@ export interface MasterGuide {
   sections: MasterGuideSection[];
 }
 
+/** A single technique phase inside an attack playbook. */
+export interface AttackStep {
+  title: string;
+  /** Markdown explaining how the attacker executes this phase. */
+  md: string;
+  /** Slugs of Kali tools used in this phase (linked against the tool DB). */
+  tools?: string[];
+}
+
+/** Attack playbook category id. */
+export type AttackCategory =
+  | "social"
+  | "mobile"
+  | "network"
+  | "web"
+  | "system"
+  | "physical";
+
+/**
+ * A real-world "how an attack happens" playbook: technique chain,
+ * the tools used, and how defenders detect and stop it. Lab/authorised
+ * education framing is kept on every page that renders this content.
+ */
+export interface AttackPlaybook {
+  slug: string;
+  title: string;
+  category: AttackCategory;
+  icon: string;
+  /** One-liner: what the attack is. */
+  summary: string;
+  /** Who it typically hits. */
+  target: string;
+  /** What the attacker gains when it works. */
+  impact: string;
+  /** Slugs of the main tools used (linked against the tool DB). */
+  tools: string[];
+  /** "How it works" walkthrough in markdown. */
+  introMd: string;
+  /** Step-by-step technique chain. */
+  steps: AttackStep[];
+  /** How a defender detects it, in markdown. */
+  detectionMd: string;
+  /** How to stop it, in markdown. */
+  defenseMd: string;
+}
+
 export interface ToolCategory {
   id: string;
   label: string;
