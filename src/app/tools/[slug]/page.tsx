@@ -6,6 +6,7 @@ import {
   TOOL_CATEGORIES,
   getToolBySlug,
   getToolsByCategory,
+  getMasterGuideForTool,
   type EnrichedTool,
 } from "@/data/tools";
 import { CopyButton } from "@/components/common/CopyButton";
@@ -17,6 +18,7 @@ import {
   MonitorSmartphone,
   Sparkles,
   BookOpenText,
+  ArrowRight,
 } from "lucide-react";
 
 export function generateStaticParams() {
@@ -55,6 +57,7 @@ export default async function ToolDetailPage(props: PageProps<"/tools/[slug]">) 
   const related = getToolsByCategory(tool.cat)
     .filter((t) => t.slug !== tool.slug)
     .slice(0, 3);
+  const guide = getMasterGuideForTool(tool);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -141,6 +144,37 @@ export default async function ToolDetailPage(props: PageProps<"/tools/[slug]">) 
           </div>
         </div>
       </div>
+
+      {guide && (
+        <section
+          className="g-border fade-up mt-8 rounded-xl p-5 sm:p-6"
+          style={{ animationDelay: "0.13s" }}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-fg">
+                <BookOpenText size={18} className="text-accent" /> Master the
+                tool
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed text-mut">
+                {guide.sections.length} in-depth sections — theory, exact
+                commands, detection &amp; defense, and pro habits for{" "}
+                {tool.name}.
+              </p>
+            </div>
+            <Link
+              href={`/guides/${guide.slug}`}
+              className="card-lift group inline-flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/20"
+            >
+              Read the master guide
+              <ArrowRight
+                size={15}
+                className="transition-transform duration-300 group-hover:translate-x-0.5"
+              />
+            </Link>
+          </div>
+        </section>
+      )}
 
       {tool.commandExplains.length > 0 && (
         <section className="fade-up mt-8" style={{ animationDelay: "0.14s" }}>

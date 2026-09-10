@@ -14,6 +14,24 @@ export interface CommandSpec {
   explain: string;
 }
 
+/**
+ * A deep-dive "become a master" guide for a popular tool.
+ * `intro` is markdown covering what/why/when, install and a sanity check.
+ * Each section is a further chunk of markdown with its own heading.
+ */
+export interface MasterGuideSection {
+  title: string;
+  md: string;
+}
+
+export interface MasterGuide {
+  slug: string;
+  /** Short descriptor shown next to the tool name, e.g. "port scanner". */
+  tagline: string;
+  intro: string;
+  sections: MasterGuideSection[];
+}
+
 export interface ToolCategory {
   id: string;
   label: string;

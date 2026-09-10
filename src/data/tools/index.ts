@@ -1,4 +1,4 @@
-import type { CommandSpec, KaliTool } from "../types";
+import type { CommandSpec, KaliTool, MasterGuide } from "../types";
 import { part1 } from "./part1";
 import { part2 } from "./part2";
 import { part3 } from "./part3";
@@ -9,6 +9,11 @@ import { part7 } from "./part7";
 import { part8 } from "./part8";
 import { TOOL_GUIDES, PLAIN_EXPLAIN_OVERRIDES } from "./guides";
 import { autoPlainExplain, autoCommandExplain } from "./autoexplain";
+import { MASTER_GUIDES_1 } from "./master-guides-1";
+import { MASTER_GUIDES_2 } from "./master-guides-2";
+import { MASTER_GUIDES_3 } from "./master-guides-3";
+import { MASTER_GUIDES_4 } from "./master-guides-4";
+import { MASTER_GUIDES_5 } from "./master-guides-5";
 
 export type ToolDifficulty = "Beginner" | "Intermediate" | "Advanced";
 
@@ -139,6 +144,25 @@ export function getPopularTools(limit = 12): EnrichedTool[] {
 
 export function getToolBySlug(slug: string): EnrichedTool | undefined {
   return TOOLS.find((t) => t.slug === slug);
+}
+
+/** In-depth "master guide" content for popular tools. */
+export const MASTER_GUIDES: MasterGuide[] = [
+  ...MASTER_GUIDES_1,
+  ...MASTER_GUIDES_2,
+  ...MASTER_GUIDES_3,
+  ...MASTER_GUIDES_4,
+  ...MASTER_GUIDES_5,
+];
+
+export function getMasterGuide(slug: string): MasterGuide | undefined {
+  return MASTER_GUIDES.find((g) => g.slug === slug);
+}
+
+export function getMasterGuideForTool(
+  tool: KaliTool,
+): MasterGuide | undefined {
+  return getMasterGuide(tool.slug);
 }
 
 export function getToolsByCategory(cat: string): EnrichedTool[] {
