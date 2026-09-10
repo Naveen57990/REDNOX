@@ -16,9 +16,12 @@ export default function TerminalPage() {
           Terminal <span className="text-neon">Sandbox</span>
         </h1>
         <p className="max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
-          A safe, <span className="text-neon">free</span> Kali terminal to practice
-          commands. Everything is simulated — no live attacks, no harm, no risk.
-          Perfect for learning the CLI before touching real systems.
+          A safe, <span className="text-neon">free</span> Kali terminal to{" "}
+          <span className="text-neon">install</span> tools and practice real
+          workflows — virtually. <code className="text-neon">sudo apt install sqlmap</code>{" "}
+          really makes <code className="text-neon">sqlmap</code> available, then you run it
+          against a simulated lab (target.co, db01.internal). Everything happens safely
+          in your browser — no live attacks, no harm, no risk.
         </p>
       </div>
 
@@ -36,8 +39,10 @@ export default function TerminalPage() {
 
       <TerminalChips />
       <p className="mt-4 text-center text-xs text-muted">
-        <span className="text-warn">Note:</span> clicking a chip types the command
-        for you — living attacks (hydra, SQLi, phishing) are intentionally blocked.
+        <span className="text-warn">Note:</span> clicking a chip types the command for
+        you. Tools are installed <em>virtually</em> and only run inside this simulated
+        lab — nothing touches a real network, and real-world attacks on unauthorized
+        systems stay illegal.
       </p>
     </main>
   );

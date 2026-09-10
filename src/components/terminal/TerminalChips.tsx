@@ -1,13 +1,17 @@
 "use client";
 
 const CHIPS = [
-  ["nmap target.co", "simulated port scan"],
-  ["cat /etc/passwd", "read system files"],
-  ["ls /usr/share/wordlists", "browse wordlists"],
-  ["neofetch", "system showcase"],
-  ["sudo apt update", "simulate as root"],
-  ["tree /usr/share", "browse the tree"],
-  ["ifconfig", "network info"],
+  ["sudo apt update", "refresh the (virtual) repos"],
+  ["sudo apt install -y sqlmap", "installs sqlmap"],
+  ["sqlmap -u http://target.co/login.php?id=1 --dbs", "practice SQLi on the lab"],
+  ["sudo apt install -y hydra hashcat", "installs hydra + hashcat"],
+  ["hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://target.co", "practice cred brute"],
+  ["hashcat -m 0 /home/kali/hashes.md5 /usr/share/wordlists/rockyou.txt", "practice hash cracking"],
+  ["gobuster dir -u http://target.co -w /usr/share/wordlists/dirb-common.txt", "practice dir busting"],
+  ["nmap -sV -sC --script vuln target.co", "practice scanning the lab"],
+  ["which nmap", "find an installed binary"],
+  ["dpkg -l", "list (virtual) installed packages"],
+  ["man nmap", "read the man page"],
   ["cat /tmp/flag.txt", "find the easter egg"],
 ] as const;
 

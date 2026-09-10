@@ -1,3 +1,13 @@
+const STANDARD_BINS = [
+  "awk", "basename", "bash", "cat", "chmod", "chown", "cp", "curl", "date", "dd",
+  "df", "du", "echo", "env", "find", "git", "grep", "gzip", "head", "id", "ip",
+  "kill", "less", "ln", "ls", "mkdir", "mount", "mv", "nmap", "passwd", "pip",
+  "pip3", "ps", "pwd", "python3", "readlink", "rm", "rmdir", "scp", "sed", "seq",
+  "sh", "sftp", "sleep", "sort", "ssh", "ss", "su", "tail", "tar", "tee", "test",
+  "time", "top", "tree", "uname", "uniq", "w", "wc", "wget", "which", "whoami",
+  "who", "xargs", "zip", "unzip",
+];
+
 export interface VNode {
   type: "dir" | "file";
   content: string;
@@ -18,17 +28,29 @@ export class VirtualFS {
       "/home/kali/Downloads",
       "/tmp",
       "/usr",
+      "/usr/bin",
+      "/usr/local/bin",
       "/usr/share",
       "/usr/share/wordlists",
+      "/usr/share/man",
+      "/usr/share/man/man1",
       "/root",
+      "/sbin",
+      "/usr/sbin",
       "/var",
       "/var/log",
       "/var/log/apache2",
+      "/var/lib",
+      "/var/lib/apt/lists",
+      "/var/lib/dpkg",
       "/dev",
       "/etc/ssh",
       "/opt",
     ]) {
       this.nodes.set(d, { type: "dir", content: "" });
+    }
+    for (const b of STANDARD_BINS) {
+      this.nodes.set("/usr/bin/" + b, { type: "file", content: "ELF\u0000" });
     }
     const files: Record<string, string> = {
       "/etc/passwd":
@@ -37,12 +59,20 @@ export class VirtualFS {
       "/etc/os-release":
         'PRETTY_NAME="Kali GNU/Linux Rolling"\nVERSION="2026.1"\nID=kali\nID_LIKE=debian',
       "/etc/hosts":
-        "127.0.0.1\tlocalhost\n127.0.1.1\tgokali\n10.0.0.5\ttarget.co\n10.0.0.12\tdb01.internal",
+        "127.0.0.1\tlocalhost\n127.0.1.1\tgokali\n10.0.0.12\ttarget.co\n10.0.0.5\tdb01.internal\n10.0.0.10\tgitlab.internal\n10.0.0.13\tmail.internal",
       "/etc/resolv.conf": "nameserver 8.8.8.8\nnameserver 1.1.1.1",
       "/home/kali/notes.txt":
         "# Engagement notes\n\n- Target: target.co (10.0.0.12)\n- Scope: web app audit, authorized\n- Found: open ports 22, 80, 443\n- TODO: run nmap script vuln",
       "/home/kali/Desktop/README.txt":
-        "Welcome to the GO KALI sandbox!\n\nThis is a SIMULATED Kali environment for learning.\nLive network attacks are blocked for safety.\n\nTry these:\n  help          list commands\n  neofetch      system info\n  nmap target.co\n  ls /usr/share/wordlists\n  cat /etc/passwd\n  sudo apt update",
+        "Welcome to the GO KALI sandbox!\n\nThis is a SIMULATED Kali environment for learning.\nLive network attacks are blocked for safety.\n\nInstall (virtual) and practice tools:\n  sudo apt update\n  sudo apt install -y sqlmap\n  sqlmap -u http://target.co/login.php?id=1 --dbs\n  sudo apt install -y gobuster hashcat\n  gobuster dir -u http://target.co -w /usr/share/wordlists/dirb-common.txt\n  hashcat -m 0 /home/kali/hashes.md5 /usr/share/wordlists/rockyou.txt\n\nLab hosts (simulated):\n  target.co (10.0.0.12) web · db01.internal (10.0.0.5) database\n  gitlab.internal (10.0.0.10) git · mail.internal (10.0.0.13)\n\nTry too:\n  help          list commands\n  neofetch      system info\n  which nmap    find tool path\n  dpkg -l | grep nmap",
+      "/home/kali/hashes.md5":
+        "5f4dcc3b5aa765d61d8327deb882cf99:admin\ne10adc3949ba59abbe56e057f20f883e:user1\nd8578edf8458ce06fbc5bb76a58c5ca4:dbuser",
+      "/home/kali/wifi.cap":
+        "WPA handshake capture (simulated)\nBSSID 00:11:22:33:44:55  ESSID gokali-wifi\nIV: 512  TKIP  PSK passphrase: gokali2024",
+      "/usr/share/wordlists/dirb-common.txt":
+        "admin.php\nlogin.php\nwp-login.php\nconfig.php\nbackup.zip\nrobots.txt\nindex.php\nuploads/\napi/\n.git/HEAD",
+      "/usr/share/wordlists/usernames.txt":
+        "admin\nroot\nkali\nuser\noperator\nguest\ntest\ndbo\nsa",
       "/home/kali/.bashrc":
         '# ~/.bashrc: aliases\nPS1="\\[\\033[01;32m\\]\\u@\\h\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\$ \\[\\033[00m\\]"\nalias ll="ls -la"\nalias hunt="ls -la | grep -i pass"',
       "/usr/share/wordlists/rockyou.txt":
@@ -91,6 +121,17 @@ export class VirtualFS {
 
   exists(path: string): boolean {
     return this.nodes.has(this.resolve(path));
+  }
+
+  hasBin(name: string): boolean {
+    const n = name.replace(/^\//, "");
+    if (n.includes("/")) return this.nodes.has(this.resolve("/" + n));
+    return (
+      this.nodes.has("/usr/bin/" + n) ||
+      this.nodes.has("/usr/local/bin/" + n) ||
+      this.nodes.has("/sbin/" + n) ||
+      this.nodes.has("/usr/sbin/" + n)
+    );
   }
 
   list(dirPath: string): { name: string; type: "dir" | "file" }[] {

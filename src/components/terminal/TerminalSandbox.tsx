@@ -66,10 +66,12 @@ export function TerminalSandbox() {
     vtermWrite(term, [
       { t: "GO KALI — virtual Kali terminal (sandbox)", c: "title" },
       {
-        t: "Safe-by-design: filesystem + network are SIMULATED. Real attacks are blocked.",
+        t: "Install (virtually) and practice real tool workflows against a simulated lab.",
         c: "warn",
       },
-      { t: "Type 'help' to see commands. Try: neofetch", c: "dim" },
+      { t: "  sudo apt install -y sqlmap   →   sqlmap -u http://target.co/login.php?id=1 --dbs", c: "ok" },
+      { t: "Lab hosts: target.co (10.0.0.12) · db01.internal (10.0.0.5) · localhost", c: "dim" },
+      { t: "Type 'help' for commands. Everything here is simulated — never touches a real system.", c: "dim" },
       { t: "", c: "dim" },
     ]);
     printPrompt();
