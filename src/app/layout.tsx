@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
+import { AgentWidget } from "@/components/agent/AgentWidget";
 
 export const metadata: Metadata = {
   title: "CyberLab AI — Everything In One Place",
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
+        <AgentWidget />
       </body>
     </html>
   );
