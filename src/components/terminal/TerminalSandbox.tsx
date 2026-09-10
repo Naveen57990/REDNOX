@@ -1,11 +1,20 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { Trash2 } from "lucide-react";
 import "@xterm/xterm/css/xterm.css";
 import { execute, type LineKind } from "@/lib/terminal/commands";
 import { VirtualFS } from "@/lib/terminal/fs";
+import {
+  TERMINAL_THEMES,
+  loadThemeId,
+  loadHistory,
+  pushHistory,
+  clearHistory,
+  type TermTheme,
+} from "@/lib/terminal/themes";
 
 const ANSI: Record<LineKind, string> = {
   out: "\x1b[0m",
@@ -23,12 +32,39 @@ function vtermWrite(term: Terminal, lines: { t: string; c?: LineKind }[]) {
   }
 }
 
+function installedPackages(raw: string): string[] {
+  const l = raw.trim();
+  let m = l.match(/(?:^|\s)(?:sudo\s+)?apt(?:-get)?\s+install\s+(?:-y\s+)?([a-zA-Z0-9._+-]+)/);
+  if (m) return [m[1]];
+  m = l.match(/(?:^|\s)(?:sudo\s+)?pip(?:3)?\s+install\s+([a-zA-Z0-9._[\]-]+)/);
+  if (m) return [m[1]];
+  return [];
+}
+
+function publishRun(raw: string, cwd: string) {
+  window.dispatchEvent(new CustomEvent("gk-terminal-ran", { detail: { raw, cwd } }));
+  for (const pkg of installedPackages(raw)) {
+    window.dispatchEvent(new CustomEvent("gk-tool-installed", { detail: { pkg } }));
+  }
+  pushHistory(raw);
+}
+
 export function TerminalSandbox() {
   const containerRef = useRef<HTMLDivElement>(null);
   const fsRef = useRef(new VirtualFS());
   const cwdRef = useRef("/home/kali");
+  const termRef = useRef<Terminal | null>(null);
+  const [theme, setTheme] = useState<TermTheme>(
+    () => TERMINAL_THEMES.find((t) => t.id === loadThemeId()) ?? TERMINAL_THEMES[0],
+  );
   const historyRef = useRef<string[]>([]);
   const historyIdxRef = useRef(0);
+  const bootTheme = useRef(theme.theme);
+
+  useEffect(() => {
+    historyRef.current = loadHistory();
+    historyIdxRef.current = historyRef.current.length;
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -39,15 +75,10 @@ export function TerminalSandbox() {
       fontSize: 14,
       fontFamily:
         '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      theme: {
-        background: "#070d09",
-        foreground: "#d1e7d9",
-        cursor: "#2ddf8e",
-        selectionBackground: "#123524",
-        brightGreen: "#2ddf8e",
-      },
+      theme: bootTheme.current,
       scrollback: 5000,
     });
+    termRef.current = term;
     const fit = new FitAddon();
     term.loadAddon(fit);
     term.open(container);
@@ -78,22 +109,25 @@ export function TerminalSandbox() {
 
     let inputBuf = "";
 
+    const runRaw = (raw: string) => {
+      historyRef.current.push(raw);
+      historyIdxRef.current = historyRef.current.length;
+      publishRun(raw, cwdRef.current);
+      const res = execute(cwdRef.current, raw, fsRef.current, historyRef.current);
+      if (res.clear) {
+        term.clear();
+      } else {
+        vtermWrite(term, res.out);
+        if (res.cwd) cwdRef.current = res.cwd;
+      }
+    };
+
     term.onData((data) => {
       if (data === "\r") {
         term.write("\r\n");
         const raw = inputBuf.trim();
         inputBuf = "";
-        if (raw) {
-          historyRef.current.push(raw);
-          historyIdxRef.current = historyRef.current.length;
-          const res = execute(cwdRef.current, raw, fsRef.current, historyRef.current);
-          if (res.clear) {
-            term.clear();
-          } else {
-            vtermWrite(term, res.out);
-            if (res.cwd) cwdRef.current = res.cwd;
-          }
-        }
+        if (raw) runRaw(raw);
         printPrompt();
       } else if (data === "\u007f") {
         if (inputBuf.length > 0) {
@@ -144,14 +178,7 @@ export function TerminalSandbox() {
       const cmd = (e as CustomEvent).detail as string;
       if (!cmd) return;
       term.write("\r\n" + cmd + "\r\n");
-      historyRef.current.push(cmd);
-      historyIdxRef.current = historyRef.current.length;
-      const res = execute(cwdRef.current, cmd, fsRef.current, historyRef.current);
-      if (res.clear) term.clear();
-      else {
-        vtermWrite(term, res.out);
-        if (res.cwd) cwdRef.current = res.cwd;
-      }
+      runRaw(cmd);
       printPrompt();
     };
     window.addEventListener("gk-terminal-run", runCmd);
@@ -162,8 +189,63 @@ export function TerminalSandbox() {
       ro.disconnect();
       container.removeEventListener("click", focus);
       term.dispose();
+      termRef.current = null;
     };
   }, []);
 
-  return <div ref={containerRef} className="h-[520px] w-full overflow-hidden rounded-xl bg-[#070d09]" />;
+  function applyTheme(next: TermTheme) {
+    setTheme(next);
+    try {
+      localStorage.setItem("cyberlab-terminal-theme", next.id);
+    } catch {
+      // ignore
+    }
+    if (termRef.current?.options) termRef.current.options.theme = next.theme;
+  }
+
+  function wipeHistory() {
+    clearHistory();
+    historyRef.current = [];
+    historyIdxRef.current = 0;
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-1 border-b border-line/70 px-3 py-2">
+        <select
+          value={theme.id}
+          onChange={(e) => {
+            const next = TERMINAL_THEMES.find((t) => t.id === e.target.value) ?? TERMINAL_THEMES[0];
+            applyTheme(next);
+          }}
+          aria-label="Terminal theme"
+          className="rounded-lg border border-line bg-panel px-2.5 py-1 text-[11px] text-mut outline-none transition-colors hover:border-neon/40 focus:border-neon/50"
+        >
+          {TERMINAL_THEMES.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.label}
+            </option>
+          ))}
+        </select>
+        <span className="ml-2 hidden text-[10.5px] text-dim sm:inline">
+          Theme saved — history syncs across visits (up arrow brings it back)
+        </span>
+        <button
+          type="button"
+          onClick={wipeHistory}
+          title="Clear saved history"
+          aria-label="Clear saved history"
+          className="ml-auto flex items-center gap-1.5 rounded-lg border border-line/60 px-2 py-1 text-[11px] text-mut transition-colors hover:border-rose/50 hover:text-rose"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Clear history
+        </button>
+      </div>
+      <div
+        ref={containerRef}
+        className="h-[460px] w-full overflow-hidden"
+        style={{ background: theme.bg }}
+      />
+    </div>
+  );
 }

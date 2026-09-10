@@ -3,6 +3,7 @@ import "./globals.css";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { AgentWidget } from "@/components/agent/AgentWidget";
+import { ProgressProvider } from "@/components/progress/ProgressProvider";
 
 export const metadata: Metadata = {
   title: "CyberLab AI — Everything In One Place",
@@ -33,7 +34,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-abyss text-fg">
         <div className="grain" aria-hidden="true" />
         <Navbar />
-        <main className="flex-1">{children}</main>
+        <ProgressProvider>
+          <main className="flex-1">{children}</main>
+        </ProgressProvider>
         <Footer />
         <AgentWidget />
       </body>

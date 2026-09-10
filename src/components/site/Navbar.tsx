@@ -18,6 +18,7 @@ import {
   Blocks,
   LibraryBig,
   ShieldAlert,
+  UserRound,
 } from "lucide-react";
 import { ThemePicker } from "./ThemePicker";
 
@@ -78,6 +79,17 @@ export function Navbar() {
 
         <div className="hidden shrink-0 items-center gap-2 xl:flex">
           <ThemePicker />
+          <Link
+            href="/profile"
+            aria-label="My progress"
+            className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
+              isActive("/profile")
+                ? "border-neon/40 bg-neon/10 text-neon"
+                : "border-line text-muted hover:bg-panel hover:text-white"
+            }`}
+          >
+            <UserRound size={17} />
+          </Link>
           {isActive("/") ? null : (
             <Link
               href="/explorer"
@@ -117,13 +129,23 @@ export function Navbar() {
           </div>
           <div className="flex items-center justify-between gap-2 border-t border-line pt-3">
             <ThemePicker />
-            <Link
-              href="/explorer"
-              onClick={() => setOpen(false)}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg btn-primary px-4 py-2.5 text-sm font-semibold"
-            >
-              Get Started <ArrowRight size={15} />
-            </Link>
+            <div className="flex flex-1 items-center justify-end gap-2">
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-muted transition-colors hover:bg-panel hover:text-white"
+                aria-label="My progress"
+              >
+                <UserRound size={17} />
+              </Link>
+              <Link
+                href="/explorer"
+                onClick={() => setOpen(false)}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg btn-primary px-4 py-2.5 text-sm font-semibold"
+              >
+                Get Started <ArrowRight size={15} />
+              </Link>
+            </div>
           </div>
         </div>
       )}

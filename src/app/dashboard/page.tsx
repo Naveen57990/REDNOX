@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { DashboardProgress } from "@/components/dashboard/DashboardProgress";
+import { XpCard } from "@/components/progress/XpCard";
 
 export const metadata: Metadata = {
   title: "Dashboard — GO KALI",
@@ -44,7 +45,11 @@ export default async function DashboardPage() {
         </span>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+      <div className="mt-8">
+        <XpCard />
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <h2 className="mb-4 text-sm font-semibold text-fg">Quick Access</h2>
           <div className="grid gap-4 sm:grid-cols-2">

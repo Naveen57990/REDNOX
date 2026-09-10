@@ -22,6 +22,16 @@ const groups: { title: string; links: { href: string; label: string }[] }[] = [
     ],
   },
   {
+    title: "Train",
+    links: [
+      { href: "/missions", label: "Lab Missions" },
+      { href: "/challenge", label: "Daily Challenge" },
+      { href: "/detective", label: "Exploit Detective" },
+      { href: "/compare", label: "Tool Comparisons" },
+      { href: "/profile", label: "My Progress" },
+    ],
+  },
+  {
     title: "Company",
     links: [
       { href: "/pricing", label: "Pricing" },
@@ -37,7 +47,7 @@ export function Footer() {
   return (
     <footer className="mt-24 border-t border-edge bg-panel/40">
       <div className="mx-auto max-w-6xl px-4 py-14">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div>
             <div className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-md border border-accent/50 bg-accent/10 text-accent">

@@ -28,6 +28,12 @@ CREATE TABLE IF NOT EXISTS conversations (
   messages   TEXT NOT NULL DEFAULT '[]',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS progress (
+  user_id    TEXT PRIMARY KEY,
+  state      TEXT NOT NULL DEFAULT '{}',
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `);
   // Seed a demo account on first run so the demo login button works instantly.
   const demoHash = bcrypt.hashSync("demo12345", 10);
@@ -76,4 +82,17 @@ export function createUser(input: {
     "INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)",
   ).run(id, input.name, input.email, input.passwordHash);
   return findUserById(id) as UserRow;
+}
+
+export function getProgress(userId: string): string | null {
+  const row = db
+    .prepare("SELECT state FROM progress WHERE user_id = ?")
+    .get(userId) as { state: string } | undefined;
+  return row?.state ?? null;
+}
+
+export function setProgress(userId: string, state: string): void {
+  db.prepare(
+    "INSERT INTO progress (user_id, state, updated_at) VALUES (?, ?, datetime('now')) ON CONFLICT(user_id) DO UPDATE SET state = excluded.state, updated_at = excluded.updated_at",
+  ).run(userId, state);
 }
